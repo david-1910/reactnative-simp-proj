@@ -1,10 +1,17 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, StatusBar } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function Notification() {
     const [activeTab, setActiveTab] = useState('All');
     
-    const tabs = ['All', 'Payments', 'System', 'Delivery', 'Travel'];
+    const tabs = [
+        { id: 'All', label: 'All', icon: 'apps' as const },
+        { id: 'Payments', label: 'Payments', icon: 'card' as const },
+        { id: 'System', label: 'System', icon: 'settings' as const },
+        { id: 'Delivery', label: 'Delivery', icon: 'cube' as const },
+        { id: 'Travel', label: 'Travel', icon: 'airplane' as const }
+    ];
     
     const notifications = [
         {
@@ -53,30 +60,41 @@ export default function Notification() {
             
             {/* Верхняя панель */}
             <View style={styles.header}>
-                <Text style={styles.time}>9:41</Text>
                 <Text style={styles.headerTitle}>Notifications</Text>
-                <View style={styles.placeholder} />
             </View>
 
-            {/* Табы */}
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.tabsContainer}>
-                <View style={styles.tabs}>
+            {/* Табы с иконками */}
+            <View style={styles.tabsWrapper}>
+                <ScrollView 
+                    horizontal 
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={styles.tabsContainer}
+                >
                     {tabs.map(tab => (
                         <TouchableOpacity 
-                            key={tab}
-                            style={[styles.tab, activeTab === tab && styles.activeTab]}
-                            onPress={() => setActiveTab(tab)}
+                            key={tab.id}
+                            style={[styles.tab, activeTab === tab.id && styles.activeTab]}
+                            onPress={() => setActiveTab(tab.id)}
                         >
-                            <Text style={[styles.tabText, activeTab === tab && styles.activeTabText]}>
-                                {tab}
+                            <Ionicons 
+                                name={tab.icon} 
+                                size={18} 
+                                color={activeTab === tab.id ? '#fff' : '#666'} 
+                            />
+                            <Text style={[styles.tabText, activeTab === tab.id && styles.activeTabText]}>
+                                {tab.label}
                             </Text>
                         </TouchableOpacity>
                     ))}
-                </View>
-            </ScrollView>
+                </ScrollView>
+            </View>
 
             {/* Список уведомлений */}
-            <ScrollView style={styles.notificationsList} showsVerticalScrollIndicator={false}>
+            <ScrollView 
+                style={styles.notificationsList} 
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={styles.scrollContent}
+            >
                 {notifications.map((notification, index) => (
                     <View key={notification.id}>
                         {/* Время группы */}
@@ -85,12 +103,17 @@ export default function Notification() {
                         ) : null}
                         
                         {/* Уведомление */}
-                        <View style={styles.notification}>
+                        <TouchableOpacity style={styles.notification}>
                             <View style={styles.notificationContent}>
                                 <Text style={styles.notificationTitle}>{notification.title}</Text>
                                 
                                 {notification.amount && (
-                                    <Text style={styles.notificationAmount}>{notification.amount}</Text>
+                                    <Text style={[
+                                        styles.notificationAmount,
+                                        notification.amount.startsWith('+') ? styles.amountPositive : styles.amountNegative
+                                    ]}>
+                                        {notification.amount}
+                                    </Text>
                                 )}
                                 
                                 <Text style={styles.notificationDescription}>{notification.description}</Text>
@@ -105,28 +128,11 @@ export default function Notification() {
                                 
                                 <Text style={styles.notificationDate}>{notification.date}</Text>
                             </View>
-                        </View>
+                        </TouchableOpacity>
                     </View>
                 ))}
 
-                {/* Нижняя навигация */}
-                <View style={styles.bottomNav}>
-                    <TouchableOpacity style={styles.navItem}>
-                        <Text style={styles.navText}>Home</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.navItem}>
-                        <Text style={styles.navText}>Payments</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.navItem}>
-                        <Text style={styles.navText}>History</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.navItem}>
-                        <Text style={styles.navText}>Analytics</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.navItem}>
-                        <Text style={styles.navText}>Chats</Text>
-                    </TouchableOpacity>
-                </View>
+                <View style={styles.bottomSpacer} />
             </ScrollView>
         </View>
     );
@@ -136,47 +142,40 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: '#070707',
-        paddingTop: 50,
     },
     header: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
         alignItems: 'center',
+        paddingTop: 20,
+        paddingBottom: 20,
         paddingHorizontal: 20,
-        paddingBottom: 15,
-    },
-    time: {
-        color: '#fff',
-        fontSize: 17,
-        fontWeight: '600',
     },
     headerTitle: {
         color: '#fff',
-        fontSize: 18,
+        fontSize: 20,
         fontWeight: '600',
     },
-    placeholder: {
-        width: 24,
+    tabsWrapper: {
+        marginBottom: 16,
     },
     tabsContainer: {
-        marginBottom: 10,
-    },
-    tabs: {
-        flexDirection: 'row',
         paddingHorizontal: 20,
+        gap: 8,
     },
     tab: {
-        paddingHorizontal: 16,
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+        paddingHorizontal: 14,
         paddingVertical: 8,
-        marginRight: 10,
-        borderRadius: 15,
+        borderRadius: 16,
+        backgroundColor: '#1a1a1a',
     },
     activeTab: {
         backgroundColor: '#FF6B35',
     },
     tabText: {
         color: '#666',
-        fontSize: 14,
+        fontSize: 13,
         fontWeight: '500',
     },
     activeTabText: {
@@ -184,74 +183,67 @@ const styles = StyleSheet.create({
     },
     notificationsList: {
         flex: 1,
+    },
+    scrollContent: {
         paddingHorizontal: 20,
     },
     timeHeader: {
         color: '#666',
-        fontSize: 14,
-        fontWeight: '500',
-        marginTop: 20,
-        marginBottom: 10,
+        fontSize: 11,
+        fontWeight: '600',
+        letterSpacing: 0.5,
+        marginTop: 16,
+        marginBottom: 12,
     },
     notification: {
         backgroundColor: '#1a1a1a',
-        padding: 15,
+        padding: 16,
         borderRadius: 12,
-        marginBottom: 10,
+        marginBottom: 8,
     },
     notificationContent: {
-        flex: 1,
+        gap: 4,
     },
     notificationTitle: {
         color: '#fff',
         fontSize: 16,
         fontWeight: '600',
-        marginBottom: 5,
+        marginBottom: 4,
     },
     notificationAmount: {
-        color: '#fff',
-        fontSize: 18,
+        fontSize: 20,
         fontWeight: 'bold',
-        marginBottom: 5,
+        marginBottom: 4,
+    },
+    amountPositive: {
+        color: '#4CAF50',
+    },
+    amountNegative: {
+        color: '#fff',
     },
     notificationDescription: {
         color: '#bdbdbd',
         fontSize: 14,
-        marginBottom: 3,
+        lineHeight: 20,
     },
     notificationBalance: {
         color: '#fff',
-        fontSize: 14,
+        fontSize: 15,
         fontWeight: '600',
-        marginBottom: 3,
+        marginTop: 4,
     },
     notificationDetails: {
         color: '#bdbdbd',
         fontSize: 14,
-        marginBottom: 5,
+        lineHeight: 20,
+        marginTop: 2,
     },
     notificationDate: {
         color: '#666',
         fontSize: 12,
-        marginTop: 5,
+        marginTop: 8,
     },
-    bottomNav: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        backgroundColor: '#0f0f0f',
-        borderRadius: 15,
-        paddingVertical: 15,
-        paddingHorizontal: 10,
-        marginTop: 20,
-        marginBottom: 30,
-    },
-    navItem: {
-        alignItems: 'center',
-        paddingHorizontal: 8,
-    },
-    navText: {
-        color: '#666',
-        fontSize: 12,
-        fontWeight: '500',
+    bottomSpacer: {
+        height: 20,
     },
 });
